@@ -6,6 +6,7 @@ from rag import (
     retrieve_relevant_chunks,
     chat_with_groq
 )
+from tracker import log_chat, get_visitor_count
 
 # ── Page Config ─────────────────────────────────────────────
 st.set_page_config(
@@ -14,8 +15,10 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🤖 RAG Chatbot")
+st.title("🤖 AI Chatbot")
 st.caption("Chat freely or upload a PDF to ask questions about it!")
+total_chats = get_visitor_count()
+st.caption(f"💬 Total conversations so far: {total_chats}")
 
 # ── Session State ────────────────────────────────────────────
 if "chat_history" not in st.session_state:
@@ -93,5 +96,9 @@ if prompt := st.chat_input("Ask me anything..."):
         st.markdown(response)
 
     # Save to history
+# Save to history
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     st.session_state.chat_history.append({"role": "assistant", "content": response})
+    
+    # Log to Google Sheets
+    log_chat(prompt, response, st.session_state.pdf_name is not None)
